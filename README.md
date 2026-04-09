@@ -36,7 +36,7 @@ This system is engineered for **Dropbox‑virtualized environments**, where file
 ## 📁 Folder Structure
 
 <p align="center">
-  <img src="https://github.com/<your-username>/finalizer-batch-suite/blob/main/FINALIZER/docs/folder-structure.png" alt="Folder Structure Diagram" width="700">
+  <img src="https://github.com/Shernandez520/finalizer-batch-suite/blob/main/FINALIZER/docs/Folder%20structure%20dia.png?raw=true" alt="Folder Structure Diagram" width="700">
 </p>
 
 ---
@@ -44,7 +44,7 @@ This system is engineered for **Dropbox‑virtualized environments**, where file
 ## 🔄 Workflow Diagram
 
 <p align="center">
-  <img src="https://github.com/<your-username>/finalizer-batch-suite/blob/main/FINALIZER/docs/workflow-diagram.png" alt="Workflow Diagram" width="800">
+  <img src="https://github.com/Shernandez520/finalizer-batch-suite/blob/main/FINALIZER/docs/Workflow%20automation.png?raw=true" alt="Workflow Diagram" width="800">
 </p>
 
 ---
