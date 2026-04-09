@@ -1,0 +1,28 @@
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Logs and flags
+*.log
+*.flag
+
+# Output files
+*.zip
+*.png
+
+# Illustrator temp files
+*.tmp
+*.bak
+
+# Dropbox conflict files
+*conflicted copy*
+
+# Node, Python, etc. (future-proofing)
+node_modules/
+__pycache__/
+
+# VSCode
+.vscode/
+
+# OS junk
+.DS_Store
