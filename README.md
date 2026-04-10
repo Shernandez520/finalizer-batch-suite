@@ -12,24 +12,45 @@ Automated Adobe Illustrator Finalization System for Logo Registration Workflows
 
 ---
 
-## Overview
-**FINALIZER Batch Suite** is a fully automated Adobe Illustrator processing system designed for high-volume logo registration workflows.  
-It opens PDFs, exports PNGs, toggles BACKGROUND layers, saves updated PDFs, removes temporary artifacts, and generates a clean ZIP package — all triggered from a simple **Send-To** action in Windows.
+## ⚠️ Workflow-Specific Notice
 
-This system is engineered for **Dropbox-virtualized environments**, where file locking, sync delays, and temp artifacts can break traditional automation. FINALIZER handles all of it safely and silently.
+This tool was built for a **specific internal production workflow** at a promotional products organization. It is not a general-purpose utility. Folder naming conventions (`PROOF#`, `FINAL`), file naming patterns (`GR#####_LR#####`), layer naming (`BACKGROUND`), and Illustrator version paths are all tailored to this environment.
+
+If you work in a similar industry and want to adapt it, the architecture is straightforward — but expect to modify paths, naming conventions, and JSX logic for your own setup.
+
+---
+
+## 📋 Overview
+
+**FINALIZER Batch Suite** automates the final production file processing step in a logo registration workflow. After a proof is approved by the customer, the Graphics team must prepare and upload finalized art files to the order management database. This step has traditionally been a manual, repetitive process prone to inconsistency.
+
+FINALIZER eliminates that manual work entirely.
+
+**The problem it solves:**
+After proof approval, a technician previously had to:
+- Manually duplicate the highest PROOF folder
+- Open each PDF in Adobe Illustrator one by one
+- Export a PNG from each file
+- Toggle the BACKGROUND layer off in each document
+- Save and close each file
+- Manually create a ZIP of the PDFs
+- Name everything consistently and log the run
+
+FINALIZER does all of this from a single **Send-To** right-click action, with no further interaction required.
 
 ---
 
 ## ✨ Features
-- Zero-click automation
-- Batch PDF processing via Illustrator JSX
+
+- Zero-click automation triggered via Windows Send-To
+- Automatically identifies and clones the highest-numbered PROOF folder
+- Batch PDF processing through Adobe Illustrator JSX scripting
 - PNG export at consistent production settings
-- BACKGROUND layer toggle
-- Automatic cleanup of `.ai` files
-- ZIP creation (PDFs only)
-- Dropbox-safe retry logic
-- Clean log output
-- Deterministic, repeatable results
+- BACKGROUND layer toggle (off) prior to PDF save
+- Automatic cleanup of `.ai` temp files
+- ZIP creation scoped to PDFs only, named per job convention
+- Dropbox-safe retry logic for virtualized file environments
+- Detailed log output per run
 
 ---
 
@@ -54,44 +75,49 @@ This system is engineered for **Dropbox-virtualized environments**, where file l
 1. Right-click any job folder
 2. Select **Send to → FINALIZER**
 3. The batch script:
-   - Clones the highest PROOF folder into FINAL
-   - Opens all PDFs in Illustrator
-   - Runs the JSX automation suite
-   - Waits for Illustrator to finish via a flag file
-   - Removes `.ai` files
-   - Creates a ZIP of PDFs only
-   - Writes a detailed log
+   - Identifies the highest `PROOF#` folder
+   - Clones it into a new `FINAL` folder
+   - Opens all PDFs in Adobe Illustrator
+   - Runs the JSX automation suite (export PNG, toggle BACKGROUND layer, save PDF, close)
+   - Waits for Illustrator to finish via a flag file handshake
+   - Removes `.ai` temp files
+   - Creates a ZIP of PDFs only, named `JOBNAME_FINAL.zip`
+   - Writes a detailed log file
 
 4. The FINAL folder contains:
-   - Updated PDFs
+   - Updated PDFs (BACKGROUND layer off)
    - PNG exports
-   - A ZIP ready for delivery
+   - A ZIP ready for database upload
    - A log file documenting the run
 
 ---
 
 ## 🛠 Requirements
+
 - Windows 10 or 11
 - Adobe Illustrator 2026
 - PowerShell
-- Dropbox (optional)
+- Dropbox (if operating in a Dropbox-virtualized file environment)
 
 ---
 
 ## 📦 Installation
 
 ### 1. Clone or download this repository
+
 ```
 git clone https://github.com/Shernandez520/finalizer-batch-suite.git
 ```
 
 ### 2. Place the `src` files in a Scripts folder
+
 Example:
 ```
 C:\Scripts\
 ```
 
 ### 3. Install the Send-To shortcut
+
 Use the included PowerShell installer:
 
 ```
@@ -99,6 +125,7 @@ install_sendto.ps1
 ```
 
 ### 4. Ensure Illustrator paths match your system
+
 Edit `FINALIZER.bat` if Illustrator is installed in a different directory.
 
 ---
@@ -134,7 +161,35 @@ Write-Host "FINALIZER Send-To shortcut installed successfully."
 
 ---
 
+## 🗺️ Phase 2 Vision
+
+The current tool handles local file finalization. A natural next phase would extend automation upstream into the order management system:
+
+- **API integration** to automatically upload FINAL files to the database upon completion
+- **GR auto-completion** triggered post-upload, eliminating the manual database entry step
+- Proofing would remain a manual, human-reviewed step — automation only engages post-approval
+
+This would reduce turnaround time further and remove the remaining manual touchpoint between file finalization and order completion.
+
+---
+
+## 💼 Portfolio Context
+
+This project is included in my portfolio as a real-world example of **workflow automation design and implementation** in a production environment.
+
+It demonstrates:
+- **Problem identification from domain expertise** — recognizing a high-frequency manual process as an automation target
+- **Cross-technology orchestration** — coordinating Windows Batch, Adobe ExtendScript (JSX), and PowerShell within a single workflow
+- **Production environment constraints** — designing around Dropbox file virtualization, Illustrator's document lifecycle, and flag-based process synchronization
+- **Deterministic, repeatable output** — every run produces consistent, predictable results regardless of job size
+- **Practical scoping** — keeping human judgment (proof approval) in the loop while automating the mechanical steps that follow
+
+This was built entirely on personal time as a solution to a real operational pain point, then proposed internally for adoption.
+
+---
+
 ## 🧩 Technologies Used
+
 - Windows Batch Scripting
 - Adobe Illustrator ExtendScript (JSX)
 - PowerShell ZIP utilities
@@ -143,6 +198,7 @@ Write-Host "FINALIZER Send-To shortcut installed successfully."
 ---
 
 ## 📝 License
+
 This project is licensed under the **MIT License**.
 
 ---
@@ -167,9 +223,8 @@ png-export
 ## 📚 Changelog
 
 ### Version 1.0
-- Initial public release
-- Stable Illustrator automation
-- ZIP retry logic
-- Clean logging
-- Flag-based synchronization
-- Dropbox-safe operations
+- Initial release
+- Stable Illustrator automation via JSX
+- ZIP retry logic for Dropbox environments
+- Flag-based process synchronization
+- Clean per-run logging
