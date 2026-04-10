@@ -203,23 +203,6 @@ This project is licensed under the **MIT License**.
 
 ---
 
-## 🔖 Recommended GitHub Tags
-
-```
-illustrator
-automation
-batch-script
-jsx
-workflow-automation
-production-tools
-design-automation
-dropbox-workflow
-pdf-processing
-png-export
-```
-
----
-
 ## 📚 Changelog
 
 ### Version 1.0
