@@ -1,213 +1,159 @@
 # FINALIZER Batch Suite
-Automated Adobe Illustrator Finalization System for Logo Registration Workflows
 
-<p align="center">
-  <img src="https://dummyimage.com/1200x250/1a1a1a/ffffff&text=FINALIZER+Batch+Suite" alt="FINALIZER Banner">
-</p>
+**One right-click turns an approved proof into a finished FINAL folder:** PNG exports, background layers hidden, and a ready-to-upload ZIP.
 
-![Status](https://img.shields.io/badge/status-production--ready-brightgreen)
-![License](https://img.shields.io/badge/license-MIT-blue)
+![Version](https://img.shields.io/badge/version-2.0-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-lightgrey)
-![Illustrator](https://img.shields.io/badge/Adobe%20Illustrator-2026-orange)
+![Illustrator](https://img.shields.io/badge/Adobe%20Illustrator-ExtendScript-orange)
+![Admin](https://img.shields.io/badge/admin%20rights-not%20required-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-blue)
+
+> ⚠️ **Built for one specific workflow.** It expects project folders named `GR#####_LR#####` that contain `PROOF#` folders of Illustrator PDFs on templates, with an optional layer named `BACKGROUND`. If your setup is similar, it's straightforward to adapt: see [Adapting it](#adapting-it).
 
 ---
 
-## ⚠️ Workflow-Specific Notice
+## The problem
 
-This tool was built for a **specific internal production workflow** at a promotional products organization. It is not a general-purpose utility. Folder naming conventions (`PROOF#`, `FINAL`), file naming patterns (`GR#####_LR#####`), layer naming (`BACKGROUND`), and Illustrator version paths are all tailored to this environment.
+After a customer approves a proof, the Graphics team had to finalize the files by hand, for every job:
 
-If you work in a similar industry and want to adapt it, the architecture is straightforward — but expect to modify paths, naming conventions, and JSX logic for your own setup.
+1. Copy the highest-numbered `PROOF#` folder and rename it `FINAL`
+2. Delete the proof's `.zip` from the copy
+3. Open every PDF in Illustrator
+4. Export each one as a 72 ppi PNG on a white background
+5. Hide the `BACKGROUND` layer wherever it's visible, then save and close
+6. Zip the PDFs as `<project>_FINAL.zip`
 
----
+That's repetitive, slow and easy to get slightly wrong.
 
-## 📋 Overview
+## What FINALIZER does
 
-**FINALIZER Batch Suite** automates the final production file processing step in a logo registration workflow. After a proof is approved by the customer, the Graphics team must prepare and upload finalized art files to the order management database. This step has traditionally been a manual, repetitive process prone to inconsistency.
-
-FINALIZER eliminates that manual work entirely.
-
-**The problem it solves:**
-After proof approval, a technician previously had to:
-- Manually duplicate the highest PROOF folder
-- Open each PDF in Adobe Illustrator one by one
-- Export a PNG from each file
-- Toggle the BACKGROUND layer off in each document
-- Save and close each file
-- Manually create a ZIP of the PDFs
-- Name everything consistently and log the run
-
-FINALIZER does all of this from a single **Send-To** right-click action, with no further interaction required.
-
----
-
-## ✨ Features
-
-- Zero-click automation triggered via Windows Send-To
-- Automatically identifies and clones the highest-numbered PROOF folder
-- Batch PDF processing through Adobe Illustrator JSX scripting
-- PNG export at consistent production settings
-- BACKGROUND layer toggle (off) prior to PDF save
-- Automatic cleanup of `.ai` temp files
-- ZIP creation scoped to PDFs only, named per job convention
-- Dropbox-safe retry logic for virtualized file environments
-- Detailed log output per run
-
----
-
-## 📁 Folder Structure
-
-<p align="center">
-  <img src="https://github.com/Shernandez520/finalizer-batch-suite/blob/main/FINALIZER/docs/Folder%20structure%20dia.png?raw=true" alt="Folder Structure Diagram" width="700">
-</p>
-
----
-
-## 🔄 Workflow Diagram
-
-<p align="center">
-  <img src="https://github.com/Shernandez520/finalizer-batch-suite/blob/main/FINALIZER/docs/Workflow%20automation.png?raw=true" alt="Workflow Diagram" width="800">
-</p>
-
----
-
-## 🚀 How It Works
-
-1. Right-click any job folder
-2. Select **Send to → FINALIZER**
-3. The batch script:
-   - Identifies the highest `PROOF#` folder
-   - Clones it into a new `FINAL` folder
-   - Opens all PDFs in Adobe Illustrator
-   - Runs the JSX automation suite (export PNG, toggle BACKGROUND layer, save PDF, close)
-   - Waits for Illustrator to finish via a flag file handshake
-   - Removes `.ai` temp files
-   - Creates a ZIP of PDFs only, named `JOBNAME_FINAL.zip`
-   - Writes a detailed log file
-
-4. The FINAL folder contains:
-   - Updated PDFs (BACKGROUND layer off)
-   - PNG exports
-   - A ZIP ready for database upload
-   - A log file documenting the run
-
----
-
-## 🛠 Requirements
-
-- Windows 10 or 11
-- Adobe Illustrator 2026
-- PowerShell
-- Dropbox (if operating in a Dropbox-virtualized file environment)
-
----
-
-## 📦 Installation
-
-### 1. Clone or download this repository
+Right-click the project folder and choose **Send to → FINALIZER**. A console window shows each step, and you end up with this:
 
 ```
-git clone https://github.com/Shernandez520/finalizer-batch-suite.git
+GR58980_LR13694\FINAL\
+  GR58980_LR13694_FC_V2.pdf     ← BACKGROUND layer hidden, same file name
+  GR58980_LR13694_FC_V2.png     ← 72 ppi, white background, as the file looked when opened
+  ...
+  GR58980_LR13694_FINAL.zip     ← the PDFs only, checked to contain every one
 ```
 
-### 2. Place the `src` files in a Scripts folder
+Nothing else is created in `FINAL`. No log or flag files are left there, and no file names change.
 
-Example:
+```mermaid
+flowchart TD
+    A["Right-click GR#####_LR#####<br/>Send to → FINALIZER"] --> B["FINALIZER.bat<br/>checks the folder, finds the highest PROOF#"]
+    B --> C{"FINAL already exists?"}
+    C -- "Rebuild / first run" --> D["Copy PROOF# → FINAL<br/>delete the proof's .zip"]
+    C -- Cancel --> X["Stop, nothing changed"]
+    D --> E["Write job file (unique run ID)<br/>start Illustrator with FINALIZER.jsx"]
+    E --> F["FINALIZER.jsx, one PDF at a time:<br/>open → export PNG → hide BACKGROUND → save if changed → close"]
+    F --> G["Result file: OK or FAIL per PDF"]
+    G --> H{"Every PDF OK?"}
+    H -- No --> Y["Stop and list what failed<br/>nothing is zipped"]
+    H -- Yes --> I["Zip the PDFs → GR#####_LR#####_FINAL.zip<br/>verify one entry per PDF"]
+    I --> J["Done: summary in the window,<br/>log saved outside Dropbox"]
 ```
-C:\Scripts\
-```
 
-### 3. Install the Send-To shortcut
+## Built for a locked-down, Dropbox-based machine
 
-Use the included PowerShell installer:
+- **No admin rights needed.** The installer only adds a shortcut to your own Send to menu. PowerShell is used only for inline commands, so no script execution policy has to change.
+- **Dropbox-safe.** Saving and zipping retry automatically while Dropbox has a file locked. Copying uses `robocopy` with retries.
+- **Nothing extra in Dropbox.** The log goes to `%LOCALAPPDATA%\FINALIZER\logs`. The hand-off files between the batch file and Illustrator go to `%TEMP%\FINALIZER`.
 
-```
-install_sendto.ps1
-```
+## Safety
 
-### 4. Ensure Illustrator paths match your system
-
-Edit `FINALIZER.bat` if Illustrator is installed in a different directory.
+| Risk | How v2 handles it |
+|---|---|
+| Other files open in Illustrator | Never touched. The script opens and closes only this job's PDFs. |
+| Illustrator pop-ups (missing fonts, etc.) stalling the run | Suppressed for the run, then restored. |
+| Illustrator hanging or never starting | Time limits: 3 minutes to start, 20 minutes to finish. Then it stops with a clear message. |
+| A leftover file from an earlier run being mistaken for "done" | Every run has a unique ID, and only this run's result file counts. |
+| A file failing in Illustrator | It's reported by name with the reason, and **nothing is zipped**. |
+| `FINAL` already exists, for example from an older proof | You're asked whether to rebuild it from the highest proof or cancel. |
+| Sending the wrong folder (a PROOF folder, FINAL...) | The name is checked against `GR…_LR…`, and you're asked before going on. |
+| A file with more than one artboard | All artboards are kept when saving, and the file is flagged for a check. The PNG shows artboard 1. |
+| Two runs at once | The second run asks before continuing. |
 
 ---
 
-## 🧩 Send-To Installer Script
+## Install
 
-Save this as `install_sendto.ps1`:
+1. Download this repository (**Code → Download ZIP**) and unzip it to a folder you'll keep, for example `Documents\FINALIZER`.
+2. Open the `src` folder and double-click **`INSTALL.bat`**. It adds **FINALIZER** to your right-click **Send to** menu.
+3. That's it. Keep `FINALIZER.bat` and `FINALIZER.jsx` together in that folder, because the shortcut points there.
 
-```powershell
-# Path to FINALIZER.bat
-$scriptPath = "C:\Scripts\FINALIZER.bat"
+Illustrator is found automatically: the newest installed version is used. To pin a specific version, set `ILLUSTRATOR_EXE` at the top of `FINALIZER.bat`.
 
-# Path to Send-To folder
-$sendTo = [Environment]::GetFolderPath("SendTo")
+**To uninstall,** press **Win + R**, type `shell:sendto`, and delete the FINALIZER shortcut.
 
-# Shortcut path
-$shortcut = Join-Path $sendTo "FINALIZER.lnk"
+## Use
 
-# Create WScript Shell COM object
-$wsh = New-Object -ComObject WScript.Shell
-$sc = $wsh.CreateShortcut($shortcut)
+1. Make sure the proof is approved and the latest `PROOF#` folder is final.
+2. Right-click the **`GR#####_LR#####`** project folder and choose **Send to → FINALIZER**.
+3. Watch the window. Each PDF is listed as OK, or FAILED with the reason. The window closes itself 20 seconds after a successful run.
 
-# Set shortcut target
-$sc.TargetPath = $scriptPath
-$sc.WorkingDirectory = Split-Path $scriptPath
-$sc.IconLocation = "shell32.dll, 13"
+## Settings
 
-# Save shortcut
-$sc.Save()
+These are at the top of `FINALIZER.bat`:
 
-Write-Host "FINALIZER Send-To shortcut installed successfully."
+| Setting | Default | What it does |
+|---|---|---|
+| `ILLUSTRATOR_EXE` | *(blank = automatic)* | Full path to `Illustrator.exe`, if you want to pin a version |
+| `TIMEOUT_MIN` | `20` | Minutes to wait for Illustrator to finish |
+| `START_WAIT_SEC` | `180` | Seconds to wait for Illustrator to start the script |
+| `DELETE_AI` | `1` | Delete `.ai` files that were copied into FINAL from the proof |
+
+## Adapting it
+
+- **Folder names:** `PROOF` and `FINAL` are in `FINALIZER.bat`, in steps 2 and 4.
+- **The layer to hide:** set `LAYER_NAME` at the top of `FINALIZER.jsx`.
+- **PNG and PDF settings:** see `fzExportPng` and `fzSavePdf` in `FINALIZER.jsx`.
+
+## Limits
+
+- Illustrator opens only the **first page** of a multi-page PDF. Files are expected to be single-page templates.
+- Folder paths containing `!` aren't supported, because of how Windows batch files read them.
+
+---
+
+## Files
+
+```
+src/
+  FINALIZER.bat   orchestrator: folders, copying, waiting, zipping, log
+  FINALIZER.jsx   Illustrator: open, export PNG, hide BACKGROUND, save, close
+  INSTALL.bat     adds the Send to shortcut (no admin rights)
+tests/
+  jsx_harness.js  runs FINALIZER.jsx against a mocked Illustrator
 ```
 
----
+Run the tests with Node.js: `node tests/jsx_harness.js`
 
-## 🗺️ Phase 2 Vision
+## Changelog
 
-The current tool handles local file finalization. A natural next phase would extend automation upstream into the order management system:
+### 2.0
+A rewrite of v1, which had several failure modes that could go unnoticed.
+- Illustrator now opens each PDF itself, one at a time. In v1 the batch file opened them all and could start processing before they had finished opening, which skipped files.
+- Only this job's files are processed. v1 processed every document open in Illustrator.
+- A unique run ID replaces the bare flag file. A leftover flag in v1 could cause unprocessed files to be zipped.
+- Time limits replace waits that could last forever. Illustrator pop-ups are suppressed.
+- Errors are reported per file, and nothing is zipped if any file fails. v1 hid every error.
+- The ZIP is checked to contain every PDF.
+- An existing `FINAL` prompts a rebuild. v1 silently reused it, even when it came from an older proof.
+- All artboards are kept when saving. v1 kept artboard 1 only.
+- `BACKGROUND` is found at any depth, including sublayers.
+- Nothing extra is written to `FINAL`. The log moved outside Dropbox.
+- Illustrator is found automatically, with a single install folder and a real `INSTALL.bat`.
 
-- **API integration** to automatically upload FINAL files to the database upon completion
-- **GR auto-completion** triggered post-upload, eliminating the manual database entry step
-- Proofing would remain a manual, human-reviewed step — automation only engages post-approval
+### 1.0
+- Initial version: batch orchestration with Illustrator scripts and flag-file synchronization.
 
-This would reduce turnaround time further and remove the remaining manual touchpoint between file finalization and order completion.
+## About
 
----
+I built this to remove a high-frequency manual step from a real production workflow. I spotted the bottleneck from years of doing the work by hand. The design keeps the human judgment (proof approval) and automates only the mechanical steps that follow.
 
-## 💼 Portfolio Context
+**Next step (planned):** carry the automation past the FINAL folder. That means extracting colors from the output files, delivering files to the order and logo-registration systems, updating status in both, and routing exceptions to a person.
 
-This project is included in my portfolio as a real-world example of **workflow automation design and implementation** in a production environment.
+## License
 
-It demonstrates:
-- **Problem identification from domain expertise** — recognizing a high-frequency manual process as an automation target
-- **Cross-technology orchestration** — coordinating Windows Batch, Adobe ExtendScript (JSX), and PowerShell within a single workflow
-- **Production environment constraints** — designing around Dropbox file virtualization, Illustrator's document lifecycle, and flag-based process synchronization
-- **Deterministic, repeatable output** — every run produces consistent, predictable results regardless of job size
-- **Practical scoping** — keeping human judgment (proof approval) in the loop while automating the mechanical steps that follow
-
-This was built entirely on personal time as a solution to a real operational pain point, then proposed internally for adoption.
-
----
-
-## 🧩 Technologies Used
-
-- Windows Batch Scripting
-- Adobe Illustrator ExtendScript (JSX)
-- PowerShell ZIP utilities
-- Dropbox-safe file handling
-
----
-
-## 📝 License
-
-This project is licensed under the **MIT License**.
-
----
-
-## 📚 Changelog
-
-### Version 1.0
-- Initial release
-- Stable Illustrator automation via JSX
-- ZIP retry logic for Dropbox environments
-- Flag-based process synchronization
-- Clean per-run logging
+MIT

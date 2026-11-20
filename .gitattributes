@@ -1,0 +1,6 @@
+# Batch files are stored with Windows (CRLF) line endings and never converted,
+# so they work however the repo is downloaded (clone or "Download ZIP").
+*.bat -text
+*.jsx text eol=lf
+*.js  text eol=lf
+*.md  text eol=lf
