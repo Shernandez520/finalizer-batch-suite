@@ -25,8 +25,6 @@ rem Minutes to wait for Illustrator to finish all files.
 set "TIMEOUT_MIN=20"
 rem Seconds to wait for Illustrator to start the script (cold starts are slow).
 set "START_WAIT_SEC=180"
-rem 1 = delete .ai files that were copied into FINAL from the proof (as v1 did)
-set "DELETE_AI=1"
 rem -------------------------------------------------------------------------
 
 set "HERE=%~dp0"
@@ -229,9 +227,7 @@ if not "!OKCOUNT!"=="!PDFCOUNT!" (
     goto :fatal
 )
 
-rem ----- 6. Tidy FINAL and zip the PDFs ------------------------------------
-if "%DELETE_AI%"=="1" del /q "!FINALFOLDER!\*.ai" >nul 2>&1
-
+rem ----- 6. Zip the PDFs ---------------------------------------------------
 set "ZIPPATH=!FINALFOLDER!\!JOBNAME!_FINAL.zip"
 set "FZ_FINAL=!FINALFOLDER!"
 set "FZ_ZIP=!ZIPPATH!"

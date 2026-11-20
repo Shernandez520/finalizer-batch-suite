@@ -101,7 +101,6 @@ These are at the top of `FINALIZER.bat`:
 | `ILLUSTRATOR_EXE` | *(blank = automatic)* | Full path to `Illustrator.exe`, if you want to pin a version |
 | `TIMEOUT_MIN` | `20` | Minutes to wait for Illustrator to finish |
 | `START_WAIT_SEC` | `180` | Seconds to wait for Illustrator to start the script |
-| `DELETE_AI` | `1` | Delete `.ai` files that were copied into FINAL from the proof |
 
 ## Adapting it
 
@@ -144,6 +143,7 @@ A rewrite of v1, which had several failure modes that could go unnoticed.
 - `BACKGROUND` is found at any depth, including sublayers.
 - Nothing extra is written to `FINAL`. The log moved outside Dropbox.
 - Illustrator is found automatically, with a single install folder and a real `INSTALL.bat`.
+- The `.ai` cleanup step is gone. It only existed to delete `.ai` copies that an early v1 build created by mistake, and v2 never creates them.
 
 ### 1.0
 - Initial version: batch orchestration with Illustrator scripts and flag-file synchronization.
